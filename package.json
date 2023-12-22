@@ -1,5 +1,5 @@
 {
-  "name": "oas-generator-from-tracing",
+  "name": "oas-generator",
   "author": "Edoardo Mistretta",
   "repository": "https://github.com/edoardomistretta/oas-generator",
   "module": "src/index.ts",

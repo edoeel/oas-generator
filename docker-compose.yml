@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     image: oven/bun:1.0.18
-    working_dir: /home/node/oas-generator-from-tracing
+    working_dir: /home/node/oas-generator
     command: ["bun", "start"]
     volumes:
-      - ./:/home/node/oas-generator-from-tracing
+      - ./:/home/node/oas-generator
