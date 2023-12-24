@@ -11,6 +11,7 @@ export type ResponseHeader = OpenAPIV3.HeaderObject;
 export type RequestBody = OpenAPIV3.RequestBodyObject;
 export type ResponseBody = OpenAPIV3.ResponseObject;
 export type MediaTypeContent = OpenAPIV3.MediaTypeObject;
+export type Schema = OpenAPIV3.SchemaObject;
 
 export type RequestIdentifierPath = Readonly<{readonly path: Path; readonly method: Method}>;
 export type ResponseIdentifierPath = Readonly<{readonly path: Path; readonly method: Method; readonly statusCode: StatusCode}>;

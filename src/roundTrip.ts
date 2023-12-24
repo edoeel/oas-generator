@@ -4,7 +4,7 @@ export type Request = {
 	readonly host: string;
 	readonly path: string;
 	readonly method: Method;
-	readonly body?: unknown;
+	readonly body?: string | Record<string, unknown>;
 };
 export type Response = {
 	readonly headers: Headers;
