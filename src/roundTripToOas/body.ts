@@ -26,6 +26,23 @@ export const mapRequestBody = (contentTypeH: RT.Header['value'], body: RT.Reques
 	}
 };
 
+// TODO refactor this method
+// TODO test this method
+export const mapResponseContent = (contentTypeH: RT.Header['value'], body: RT.Response['body']): OAS.ResponseBody => {
+	if (body === undefined) {
+		return {};
+	}
+
+	switch (contentTypeH) {
+		case 'application/json': {
+			return unserializeApplicationJson(body).content;
+		}
+
+		default:
+			return assertUnreachable(contentTypeH);
+	}
+};
+
 const unserializeApplicationJson = (body: Omit<RT.Request['body'], 'undefined'>): OAS.RequestBody => ({
 	description: '**description**',
 	required: true,
