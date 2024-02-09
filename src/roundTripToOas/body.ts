@@ -22,7 +22,7 @@ export const mapRequestBody = (contentTypeH: RT.Header['value'], body: RT.Reques
 		}
 
 		default:
-			return assertUnreachable(contentTypeH);
+			return assertUnreachable("content-type not yet handled", contentTypeH);
 	}
 };
 
@@ -39,7 +39,7 @@ export const mapResponseContent = (contentTypeH: RT.Header['value'], body: RT.Re
 		}
 
 		default:
-			return assertUnreachable(contentTypeH);
+			return assertUnreachable("content-type not yet handled", contentTypeH);
 	}
 };
 
