@@ -9,7 +9,7 @@ export type Request = {
 export type Response = {
 	readonly headers: Headers;
 	readonly statusCode: StatusCode;
-	readonly body?: unknown;
+	readonly body?: string | Record<string, unknown>;
 };
 export type Headers = readonly Header[];
 export type StatusCode = number;
