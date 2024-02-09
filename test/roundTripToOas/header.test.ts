@@ -2,7 +2,7 @@ import {describe, expect, it} from 'bun:test';
 import type * as OAS from '@app/oas';
 import type * as RT from '@app/roundTrip';
 import {mapRequestHeader, mapResponseHeader} from '@app/roundTripToOas/header';
-import {Effect} from 'effect';
+import * as E from 'fp-ts/Either';
 
 describe('Map RoundTrip request header to OAS request header', () => {
 	it('should map header', () => {
@@ -23,7 +23,7 @@ describe('Map RoundTrip request header to OAS request header', () => {
 			},
 		};
 
-		expect(mapRequestHeader(rtHeader)).toStrictEqual(Effect.succeed(oasHeader));
+		expect(mapRequestHeader(rtHeader)).toStrictEqual(E.of(oasHeader));
 	});
 	it('should map header with an empty value', () => {
 		const rtHeader: RT.Header = {name: 'Content-type', value: ''};
@@ -43,14 +43,14 @@ describe('Map RoundTrip request header to OAS request header', () => {
 			},
 		};
 
-		expect(mapRequestHeader(rtHeader)).toStrictEqual(Effect.succeed(oasHeader));
+		expect(mapRequestHeader(rtHeader)).toStrictEqual(E.of(oasHeader));
 	});
 	it.skip('should fail mapping header with an empty name', () => {
 		const rtHeader: RT.Header = {name: '', value: 'application/json'};
 
 		const result = mapRequestHeader(rtHeader);
-		expect(Effect.isSuccess(result)).toBeFalse();
-		expect().toStrictEqual(Effect.fail(new Error('Header name must be at least 1 byte')));
+		expect(E.isRight(result)).toBeFalse();
+		expect().toStrictEqual(E.left(new Error('Header name must be at least 1 byte')));
 	});
 });
 
@@ -73,7 +73,7 @@ describe('Map RoundTrip response header to OAS response header', () => {
 			},
 		};
 
-		expect(mapResponseHeader(rtHeader)).toStrictEqual(Effect.succeed(oasHeader));
+		expect(mapResponseHeader(rtHeader)).toStrictEqual(E.of(oasHeader));
 	});
 	it('should map a header with an empty value', () => {
 		const rtHeader: RT.Header = {name: 'Content-type', value: ''};
@@ -93,11 +93,11 @@ describe('Map RoundTrip response header to OAS response header', () => {
 			},
 		};
 
-		expect(mapResponseHeader(rtHeader)).toStrictEqual(Effect.succeed(oasHeader));
+		expect(mapResponseHeader(rtHeader)).toStrictEqual(E.of(oasHeader));
 	});
 	it.skip('should fail mapping a header with an empty name', () => {
 		const rtHeader: RT.Header = {name: '', value: 'application/json'};
 
-		expect(mapResponseHeader(rtHeader)).toStrictEqual(Effect.fail(new Error('Header name must be at least 1 byte')));
+		expect(mapResponseHeader(rtHeader)).toStrictEqual(E.left(new Error('Header name must be at least 1 byte')));
 	});
 });
