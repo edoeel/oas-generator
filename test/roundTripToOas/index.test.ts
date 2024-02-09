@@ -102,7 +102,7 @@ describe('Map RoundTrip to OAS', () => {
 											nullable: false,
 										},
 									},
-									'Accept': {
+									Accept: {
 										required: true,
 										description: '**header description**',
 										allowEmptyValue: false,
@@ -141,6 +141,6 @@ describe('Map RoundTrip to OAS', () => {
 			},
 		};
 
-    expect(mapRoundTripToOas(rt)).toStrictEqual(oas);
+		expect(mapRoundTripToOas(rt)).toStrictEqual(oas);
 	});
 });

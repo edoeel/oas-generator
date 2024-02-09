@@ -24,7 +24,7 @@ export const mapRequestHeader = (header: RT.Header): E.Either<Error, OAS.Request
 	});
 };
 
-export const mapResponseHeader = (header: RT.Header): E.Either<Error, OAS.ResponseObject['headers']> => {
+export const mapResponseHeader = (header: RT.Header): E.Either<Error, NonNullable<OAS.ResponseObject['headers']>> => {
 	if (header.name === '') {
 		return E.left(new Error('Header name must be at least 1 byte')); // https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
 	}

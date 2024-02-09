@@ -22,7 +22,7 @@ export const mapRequestBody = (contentTypeH: RT.Header['value'], body: RT.Reques
 		}
 
 		default:
-			return assertUnreachable("content-type not yet handled", contentTypeH);
+			return assertUnreachable(`content-type ${contentTypeH} not yet handled`, contentTypeH);
 	}
 };
 
@@ -34,12 +34,13 @@ export const mapResponseContent = (contentTypeH: RT.Header['value'], body: RT.Re
 	}
 
 	switch (contentTypeH) {
-		case 'application/json': {
+		case 'application/json':
+		case 'application/problem+json': {
 			return unserializeApplicationJson(body).content;
 		}
 
 		default:
-			return assertUnreachable("content-type not yet handled", contentTypeH);
+			return assertUnreachable(`content-type ${contentTypeH} not yet handled`, contentTypeH);
 	}
 };
 
