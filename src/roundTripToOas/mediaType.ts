@@ -5,6 +5,7 @@ import type * as RT from '@app/roundTrip';
 import * as String from 'effect/String';
 import * as Array from 'effect/ReadonlyArray';
 
+// TODO test this method
 export const mediaType = (contentTypeH: RT.Header['value'], body: RT.Request['body']) => pipe(
 	mediaTypeFromContentType(contentTypeH),
 	O.flatMap(_ => mediaTypeFromBody(body)),
