@@ -25,7 +25,7 @@ lint:
 	docker compose run --rm app bun eslint ./src ./test
 
 lint-fix:
-	docker compose run --rm app bun eslint --fix ./src ./test
+	docker compose run --rm app bun eslint --fix -- ./src ./test
 
 pre-commit:
 	make typecheck

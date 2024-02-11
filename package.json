@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "effect": "^2.0.0-next.61",
+    "fp-ts": "^2.16.2",
     "openapi-types": "^12.1.3"
   }
 }
