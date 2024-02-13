@@ -21,7 +21,7 @@ describe('Map RoundTrip to OAS', () => {
 			},
 		}];
 		const oas: OAS.Oas = {
-			openapi: '**3.0.1**',
+			openapi: '3.0.1',
 			info: {
 				title: '**title**',
 				version: '**version**',
