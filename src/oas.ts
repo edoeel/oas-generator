@@ -13,8 +13,12 @@ export type ResponseBody = OpenAPIV3.ResponseObject['content'];
 export type MediaTypeContent = OpenAPIV3.MediaTypeObject;
 export type Schema = OpenAPIV3.SchemaObject;
 export type Server = OpenAPIV3.ServerObject;
+export type OperationObject = OpenAPIV3.OperationObject;
+export type HttpMethods = OpenAPIV3.HttpMethods;
+export type ResponsesObject = OpenAPIV3.ResponsesObject;
 
 export type RequestIdentifierPath = Readonly<{readonly path: Path; readonly method: Method}>;
 export type ResponseIdentifierPath = Readonly<{readonly path: Path; readonly method: Method; readonly statusCode: StatusCode}>;
 export const requestIdentifierPathC = (path: Path, method: Method): RequestIdentifierPath => ({path, method});
 export const responseIdentifierPathC = (path: Path, method: Method, statusCode: StatusCode): ResponseIdentifierPath => ({path, method, statusCode});
+export const httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;

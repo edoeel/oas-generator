@@ -1,20 +1,60 @@
-import {arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup} from '@app/functions';
-import type * as OAS from '@app/oas';
+import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
+import * as OAS from '@app/oas';
 import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
 import * as S from 'fp-ts/string';
 import * as Arr from 'fp-ts/Array';
+import * as ROArr from 'fp-ts/ReadonlyArray';
 import * as N from 'fp-ts/number';
-import {pipe} from 'fp-ts/function';
+import { pipe } from 'fp-ts/function';
 import * as Ord from 'fp-ts/Ord';
-import assert from 'assert';
-import {serversSg} from '@app/concat/server';
-import {infoSg} from '@app/concat/info';
+import { infoSg } from '@app/concat/info';
 
-const methodSg: Sg.Semigroup<NonNullable<OAS.Oas['paths'][string]>[OAS.Method]> = undefined as any;
-const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = undefined as any
+// const longerString = Sg.max(Ord.contramap<number, string>((s) => s.length)(N.Ord));
 
-const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
+// const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = undefined as any
+
+// const methodSg: Sg.Semigroup<OAS.OperationObject> = {
+//   concat(x, y) {
+//     return {
+//       ...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
+//       responses: responsesSg.concat(x.responses, y.responses),
+//     }
+//   },
+// };
+
+export const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
+	concat(x, y) {
+		if (x !== undefined && y !== undefined) {
+			return pipe(
+				OAS.httpMethods,
+				ROArr.map(m => {
+					const xMethod = x[m];
+					const yMethod = y[m];
+					if (xMethod !== undefined && yMethod !== undefined) {
+						return { [m]: xMethod }; // TODO only for testing purposes
+						// return methodSg.concat(xMethod, yMethod);
+					}
+
+					if (xMethod !== undefined) {
+						return { [m]: xMethod };
+					}
+
+					if (yMethod !== undefined) {
+						return { [m]: yMethod };
+					}
+
+					return undefined;
+				}),
+				ROArr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
+			)
+		}
+
+		return x || y;
+	},
+};
+
+export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 	concat(x, y) {
 		return pipe(
 			Object.keys(x),
@@ -22,23 +62,24 @@ const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 			Arr.uniq(S.Eq),
 			Arr.map(path => {
 				if (x[path] && y[path]) {
-					return {[path]: pathSg.concat(x[path], y[path])};
+					console.log(x[path], y[path], { [path]: pathSg.concat(x[path], y[path]) })
+					return { [path]: pathSg.concat(x[path], y[path]) };
 				}
 
 				if (x[path]) {
-					return {[path]: x[path]};
+					return { [path]: x[path] };
 				}
 
 				if (y[path]) {
-					return {[path]: y[path]};
+					return { [path]: y[path] };
 				}
 			}),
-			Arr.foldRight(() => ({}), (pv, cv) => ({...pv, ...cv})),
+			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
 		);
 	},
 };
 
-const oasSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
+export const oasSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
 	info: infoSg,
 	openapi: Sg.first<string>(),
 	paths: pathsSg,
@@ -53,7 +94,6 @@ const oasSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
 // import * as Ord from "fp-ts/Ord";
 // import assert from "assert";
 
-// const longerString = Sg.max(Ord.contramap<number, string>((s) => s.length)(N.Ord));
 // // const responsesSg: Sg.Semigroup<OAS.OperationObject["responses"]> = {
 // //   concat(x, y) {
 // //     Object.keys(x).map((code) => y[code] !== undefined ? responseSg.concat(x[code], y[code]))
