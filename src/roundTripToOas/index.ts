@@ -3,7 +3,7 @@ import type * as RT from '@app/roundTrip';
 import {mapServer} from '@app/roundTripToOas/server';
 import {mapRequestBody, mapResponseContent} from '@app/roundTripToOas/body';
 import {mapRequestHeader, mapResponseHeader} from '@app/roundTripToOas/header';
-import { mediaType } from '@app/roundTripToOas/mediaType';
+import {mediaType} from '@app/roundTripToOas/mediaType';
 import {type ReadonlyNonEmptyArray} from 'fp-ts/ReadonlyNonEmptyArray';
 import * as E from 'fp-ts/Either';
 import * as Arr from 'fp-ts/Array';
@@ -19,14 +19,14 @@ export const mapRoundTripToOas = (rt: RT.RoundTrip): OAS.Oas => {
 	assert(reqHeadersE._tag === 'Right'); // TODO refactor: at the moment I want to pass the test
 
 	const reqMediaType = mediaType(rt[0].headers.find(searchForContentType)?.value.toLowerCase()!, rt[0].body);
-	assert(reqMediaType._tag === "Some"); // TODO refactor: at the moment I want to pass the test
+	assert(reqMediaType._tag === 'Some'); // TODO refactor: at the moment I want to pass the test
 
 	const resheadersE = pipe(rt[0].headers.map(mapResponseHeader), Arr.sequence(E.Applicative), E.map(l => l.reduce((pv, cv) => ({...pv, ...cv}), {})));
 	assert(resheadersE._tag === 'Right'); // TODO refactor: at the moment I want to pass the test
 
 	const resMediaType = mediaType(rt[1].headers.find(searchForContentType)?.value.toLowerCase()!, rt[1].body);
-	assert(resMediaType._tag === "Some"); // TODO refactor: at the moment I want to pass the test
-	
+	assert(resMediaType._tag === 'Some'); // TODO refactor: at the moment I want to pass the test
+
 	return {
 		openapi: '3.0.1',
 		info: {
