@@ -28,9 +28,7 @@ const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 	concat(x, y) {
 		return pipe(
-			Object.keys(x),
-			Arr.concat(Object.keys(y)),
-			Arr.uniq(S.Eq),
+			getUniqKeysFromObjects([x, y]),
 			Arr.map(responseCode => {
 				if (x[responseCode] && y[responseCode]) {
 					return { [responseCode]: responseSg.concat(x[responseCode], y[responseCode]) };
@@ -66,7 +64,7 @@ export const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
 					const xMethod = x[m];
 					const yMethod = y[m];
 					if (xMethod !== undefined && yMethod !== undefined) {
-						return methodSg.concat(xMethod, yMethod);
+						return { [m]: methodSg.concat(xMethod, yMethod) };
 					}
 
 					if (xMethod !== undefined) {
@@ -90,9 +88,7 @@ export const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
 export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 	concat(x, y) {
 		return pipe(
-			Object.keys(x),
-			Arr.concat(Object.keys(y)),
-			Arr.uniq(S.Eq),
+			getUniqKeysFromObjects([x, y]),
 			Arr.map(path => {
 				if (x[path] && y[path]) {
 					return { [path]: pathSg.concat(x[path], y[path]) };
@@ -110,6 +106,12 @@ export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 		);
 	},
 };
+
+const getUniqKeysFromObjects = (a: Array<Record<string, unknown>>): Array<string> => pipe(
+	a,
+	Arr.flatMap(obj => Object.keys(obj)),
+	Arr.uniq(S.Eq)
+)
 
 export const oasSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
 	info: infoSg,
