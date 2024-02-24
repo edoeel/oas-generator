@@ -1,4 +1,4 @@
-import {infoSg} from '@app/concat/info';
+import {infoSg} from '@app/semigroup/info';
 import {describe, expect, it} from 'bun:test';
 
 describe('Info semigroup', () => {

@@ -1,4 +1,4 @@
-import {serversSg} from '@app/concat/server';
+import {serversSg} from '@app/semigroup/server';
 import {describe, expect, it} from 'bun:test';
 
 describe('Servers semigroup', () => {

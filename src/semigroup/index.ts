@@ -1,4 +1,4 @@
-import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
+import {arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup} from '@app/functions';
 import * as OAS from '@app/oas';
 import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
@@ -6,24 +6,24 @@ import * as S from 'fp-ts/string';
 import * as Arr from 'fp-ts/Array';
 import * as ROArr from 'fp-ts/ReadonlyArray';
 import * as N from 'fp-ts/number';
-import { pipe } from 'fp-ts/function';
+import {pipe} from 'fp-ts/function';
 import * as Ord from 'fp-ts/Ord';
-import { infoSg } from '@app/concat/info';
+import {infoSg} from '@app/semigroup/info';
 import assert from 'assert';
 
-const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS.ReferenceObject => maybeReferenceObj !== null && typeof maybeReferenceObj === "object" && "$ref" in maybeReferenceObj
+const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS.ReferenceObject => maybeReferenceObj !== null && typeof maybeReferenceObj === 'object' && '$ref' in maybeReferenceObj;
 
-const longerString = Sg.max(Ord.contramap<number, string>((s) => s.length)(N.Ord));
+const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 
 const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	concat(x, y) {
-		assert(!isReferenceObject(x), 'ReferenceObjects are not created during oas generation')
-		assert(!isReferenceObject(y), 'ReferenceObjects are not created during oas generation')
+		assert(!isReferenceObject(x), 'ReferenceObjects are not created during oas generation');
+		assert(!isReferenceObject(y), 'ReferenceObjects are not created during oas generation');
 		return {
-			description: longerString.concat(x.description, y.description)
-		}
+			description: longerString.concat(x.description, y.description),
+		};
 	},
-}
+};
 
 const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 	concat(x, y) {
@@ -31,31 +31,31 @@ const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 			getUniqKeysFromObjects([x, y]),
 			Arr.map(responseCode => {
 				if (x[responseCode] && y[responseCode]) {
-					return { [responseCode]: responseSg.concat(x[responseCode], y[responseCode]) };
+					return {[responseCode]: responseSg.concat(x[responseCode], y[responseCode])};
 				}
 
 				if (x[responseCode]) {
-					return { [responseCode]: x[responseCode] };
+					return {[responseCode]: x[responseCode]};
 				}
 
 				if (y[responseCode]) {
-					return { [responseCode]: y[responseCode] };
+					return {[responseCode]: y[responseCode]};
 				}
 			}),
-			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
-		)
-	}
-}
-
-export const methodSg: Sg.Semigroup<OAS.OperationObject> = {
-  concat(x, y) {
-    return {
-      responses: responsesSg.concat(x.responses, y.responses),
-    }
-  },
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+		);
+	},
 };
 
-export const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
+export const operationSg: Sg.Semigroup<OAS.OperationObject> = {
+	concat(x, y) {
+		return {
+			responses: responsesSg.concat(x.responses, y.responses),
+		};
+	},
+};
+
+export const pathItemSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
 	concat(x, y) {
 		if (x !== undefined && y !== undefined) {
 			return pipe(
@@ -64,21 +64,21 @@ export const pathSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
 					const xMethod = x[m];
 					const yMethod = y[m];
 					if (xMethod !== undefined && yMethod !== undefined) {
-						return { [m]: methodSg.concat(xMethod, yMethod) };
+						return {[m]: operationSg.concat(xMethod, yMethod)};
 					}
 
 					if (xMethod !== undefined) {
-						return { [m]: xMethod };
+						return {[m]: xMethod};
 					}
 
 					if (yMethod !== undefined) {
-						return { [m]: yMethod };
+						return {[m]: yMethod};
 					}
 
 					return undefined;
 				}),
-				ROArr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
-			)
+				ROArr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+			);
 		}
 
 		return x || y;
@@ -91,29 +91,29 @@ export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 			getUniqKeysFromObjects([x, y]),
 			Arr.map(path => {
 				if (x[path] && y[path]) {
-					return { [path]: pathSg.concat(x[path], y[path]) };
+					return {[path]: pathItemSg.concat(x[path], y[path])};
 				}
 
 				if (x[path]) {
-					return { [path]: x[path] };
+					return {[path]: x[path]};
 				}
 
 				if (y[path]) {
-					return { [path]: y[path] };
+					return {[path]: y[path]};
 				}
 			}),
-			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
 		);
 	},
 };
 
-const getUniqKeysFromObjects = (a: Array<Record<string, unknown>>): Array<string> => pipe(
+const getUniqKeysFromObjects = (a: Array<Record<string, unknown>>): string[] => pipe(
 	a,
 	Arr.flatMap(obj => Object.keys(obj)),
-	Arr.uniq(S.Eq)
-)
+	Arr.uniq(S.Eq),
+);
 
-export const oasSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
+export const documentSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
 	info: infoSg,
 	openapi: Sg.first<string>(),
 	paths: pathsSg,
