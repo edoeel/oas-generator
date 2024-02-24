@@ -1,6 +1,5 @@
 import {arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup} from '@app/functions';
 import * as OAS from '@app/oas';
-import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
 import * as S from 'fp-ts/string';
 import * as Arr from 'fp-ts/Array';
@@ -25,7 +24,7 @@ const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	},
 };
 
-const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
+export const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 	concat(x, y) {
 		return pipe(
 			getUniqKeysFromObjects([x, y]),

@@ -4,7 +4,7 @@ import {describe, expect, it} from 'bun:test';
 const emptyOperation = {responses: {}};
 
 describe('Paths semigroup', () => {
-	it('should concat 2 paths into 1 path', () => {
+	it('should concat 2 paths into 1 paths', () => {
 		expect(pathsSg.concat({
 			'/quote': {
 				get: emptyOperation,
@@ -15,7 +15,7 @@ describe('Paths semigroup', () => {
 			},
 		});
 	});
-	it('should concat 2 paths into 1 path', () => {
+	it('should concat 2 paths into 1 paths', () => {
 		expect(pathsSg.concat({}, {
 			'/quote': {
 				get: emptyOperation,
@@ -26,7 +26,7 @@ describe('Paths semigroup', () => {
 			},
 		});
 	});
-	it('should concat 2 paths into 1 path', () => {
+	it('should concat 2 paths into 1 paths', () => {
 		expect(pathsSg.concat({
 			'/quote': {
 				get: emptyOperation,
@@ -42,7 +42,7 @@ describe('Paths semigroup', () => {
 			},
 		});
 	});
-	it('should concat 2 paths into 1 path', () => {
+	it('should concat 2 paths into 1 paths', () => {
 		expect(pathsSg.concat({
 			'/quote': {
 				get: emptyOperation,
