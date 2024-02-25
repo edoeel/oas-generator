@@ -17,6 +17,7 @@ export type OperationObject = OpenAPIV3.OperationObject;
 export type HttpMethods = OpenAPIV3.HttpMethods;
 export type ResponsesObject = OpenAPIV3.ResponsesObject;
 export type ReferenceObject = OpenAPIV3.ReferenceObject;
+export type HeaderObject = OpenAPIV3.HeaderObject;
 
 export type RequestIdentifierPath = Readonly<{readonly path: Path; readonly method: Method}>;
 export type ResponseIdentifierPath = Readonly<{readonly path: Path; readonly method: Method; readonly statusCode: StatusCode}>;

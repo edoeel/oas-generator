@@ -23,8 +23,8 @@ export const concatRecordOptionalFieldsWithSemigroup = <A>(x: A, y: A) => <K ext
 
 	const xx = x[optionalField];
 	const yy = y[optionalField];
-	assert(xx);
-	assert(yy);
+	assert(xx !== undefined && xx !== null);
+	assert(yy !== undefined && yy !== null);
 	return {[optionalField]: sg.concat(xx, yy)};
 };
 

@@ -14,12 +14,49 @@ const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS
 
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 
-const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
+type ExcludeReferenceObject<T> = T extends {$ref: any} ? never : T;
+
+export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
+	concat(x, y) {
+		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+		}
+	},
+}
+
+export const headersSg: Sg.Semigroup<NonNullable<ExcludeReferenceObject<OAS.ResponsesObject[string]>["headers"]>> = {
+	concat(x, y) {
+		return pipe(
+			getUniqKeysFromObjects([x, y]),
+			Arr.map(headerName => {
+				if (x[headerName] && y[headerName]) {
+					const xHeader = x[headerName];
+					const yHeader = y[headerName];
+					assert(!isReferenceObject(xHeader), 'ReferenceObjects are not created during oas generation');
+					assert(!isReferenceObject(yHeader), 'ReferenceObjects are not created during oas generation');
+					return {[headerName]: headerSg.concat(xHeader, yHeader)};
+				}
+
+				if (x[headerName]) {
+					return {[headerName]: x[headerName]};
+				}
+
+				if (y[headerName]) {
+					return {[headerName]: y[headerName]};
+				}
+			}),
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+		);
+	},
+}
+
+export const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	concat(x, y) {
 		assert(!isReferenceObject(x), 'ReferenceObjects are not created during oas generation');
 		assert(!isReferenceObject(y), 'ReferenceObjects are not created during oas generation');
 		return {
 			description: longerString.concat(x.description, y.description),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("headers")(headersSg)
 		};
 	},
 };
