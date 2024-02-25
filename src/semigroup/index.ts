@@ -1,5 +1,6 @@
 import {arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup} from '@app/functions';
 import * as OAS from '@app/oas';
+import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
 import * as S from 'fp-ts/string';
 import * as Arr from 'fp-ts/Array';
@@ -20,6 +21,11 @@ export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 	concat(x, y) {
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(B.SemigroupAll),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("allowEmptyValue")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+			
 		}
 	},
 }
