@@ -1,4 +1,4 @@
-import {arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup} from '@app/functions';
+import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
 import * as OAS from '@app/oas';
 import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
@@ -6,26 +6,32 @@ import * as S from 'fp-ts/string';
 import * as Arr from 'fp-ts/Array';
 import * as ROArr from 'fp-ts/ReadonlyArray';
 import * as N from 'fp-ts/number';
-import {pipe} from 'fp-ts/function';
+import { pipe } from 'fp-ts/function';
 import * as Ord from 'fp-ts/Ord';
-import {infoSg} from '@app/semigroup/info';
+import { infoSg } from '@app/semigroup/info';
 import assert from 'assert';
 
 const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS.ReferenceObject => maybeReferenceObj !== null && typeof maybeReferenceObj === 'object' && '$ref' in maybeReferenceObj;
 
-const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
+type ExcludeReferenceObject<T> = T extends { $ref: any } ? never : T;
 
-type ExcludeReferenceObject<T> = T extends {$ref: any} ? never : T;
+const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 
 export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 	concat(x, y) {
+		// Workaround: Typescript isn't smart enough to remove ReferenceObject from the union type in .schema
+		const xx = x as Omit<typeof x, "schema"> & { schema: ExcludeReferenceObject<(typeof x)["schema"]> };
+		const yy = y as Omit<typeof y, "schema"> & { schema: ExcludeReferenceObject<(typeof y)["schema"]> };
+		assert(!isReferenceObject(x.schema), 'ReferenceObjects are not created during oas generation');
+		assert(!isReferenceObject(y.schema), 'ReferenceObjects are not created during oas generation');
+
 		return {
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(B.SemigroupAll),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("allowEmptyValue")(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
-			
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("description")(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("required")(B.SemigroupAll),
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("deprecated")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("allowEmptyValue")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("example")(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("schema")(schemaSg),
 		}
 	},
 }
@@ -40,18 +46,18 @@ export const headersSg: Sg.Semigroup<NonNullable<ExcludeReferenceObject<OAS.Resp
 					const yHeader = y[headerName];
 					assert(!isReferenceObject(xHeader), 'ReferenceObjects are not created during oas generation');
 					assert(!isReferenceObject(yHeader), 'ReferenceObjects are not created during oas generation');
-					return {[headerName]: headerSg.concat(xHeader, yHeader)};
+					return { [headerName]: headerSg.concat(xHeader, yHeader) };
 				}
 
 				if (x[headerName]) {
-					return {[headerName]: x[headerName]};
+					return { [headerName]: x[headerName] };
 				}
 
 				if (y[headerName]) {
-					return {[headerName]: y[headerName]};
+					return { [headerName]: y[headerName] };
 				}
 			}),
-			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
 		);
 	},
 }
@@ -73,18 +79,18 @@ export const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 			getUniqKeysFromObjects([x, y]),
 			Arr.map(responseCode => {
 				if (x[responseCode] && y[responseCode]) {
-					return {[responseCode]: responseSg.concat(x[responseCode], y[responseCode])};
+					return { [responseCode]: responseSg.concat(x[responseCode], y[responseCode]) };
 				}
 
 				if (x[responseCode]) {
-					return {[responseCode]: x[responseCode]};
+					return { [responseCode]: x[responseCode] };
 				}
 
 				if (y[responseCode]) {
-					return {[responseCode]: y[responseCode]};
+					return { [responseCode]: y[responseCode] };
 				}
 			}),
-			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
 		);
 	},
 };
@@ -106,20 +112,20 @@ export const pathItemSg: Sg.Semigroup<OAS.Oas['paths'][string]> = {
 					const xMethod = x[m];
 					const yMethod = y[m];
 					if (xMethod !== undefined && yMethod !== undefined) {
-						return {[m]: operationSg.concat(xMethod, yMethod)};
+						return { [m]: operationSg.concat(xMethod, yMethod) };
 					}
 
 					if (xMethod !== undefined) {
-						return {[m]: xMethod};
+						return { [m]: xMethod };
 					}
 
 					if (yMethod !== undefined) {
-						return {[m]: yMethod};
+						return { [m]: yMethod };
 					}
 
 					return undefined;
 				}),
-				ROArr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+				ROArr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
 			);
 		}
 
@@ -133,18 +139,18 @@ export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 			getUniqKeysFromObjects([x, y]),
 			Arr.map(path => {
 				if (x[path] && y[path]) {
-					return {[path]: pathItemSg.concat(x[path], y[path])};
+					return { [path]: pathItemSg.concat(x[path], y[path]) };
 				}
 
 				if (x[path]) {
-					return {[path]: x[path]};
+					return { [path]: x[path] };
 				}
 
 				if (y[path]) {
-					return {[path]: y[path]};
+					return { [path]: y[path] };
 				}
 			}),
-			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+			Arr.reduceRight({}, (pv, cv) => ({ ...pv, ...cv })),
 		);
 	},
 };
