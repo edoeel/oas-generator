@@ -8,6 +8,7 @@ import * as ROArr from 'fp-ts/ReadonlyArray';
 import * as N from 'fp-ts/number';
 import { pipe } from 'fp-ts/function';
 import * as Ord from 'fp-ts/Ord';
+import * as Eq from 'fp-ts/Eq';
 import { infoSg } from '@app/semigroup/info';
 import assert from 'assert';
 
@@ -16,6 +17,69 @@ const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS
 type ExcludeReferenceObject<T> = T extends { $ref: any } ? never : T;
 
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
+const schemaEq: Eq.Eq<OAS.Schema> = {
+	equals(x, y) {
+		return true;
+	},
+}
+
+export const schemaSg: Sg.Semigroup<OAS.Schema> = {
+	concat(x, y) {
+		if (x.type === undefined && y.type === undefined) {
+			return {};
+		}
+
+		if (x.type === y.type) {
+			return {
+				type: x.type,
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
+			}
+		}
+
+		const hasXOneOf = x.oneOf !== undefined && x.oneOf.length > 0;
+		const hasYOneOf = y.oneOf !== undefined && y.oneOf.length > 0;
+		if (hasXOneOf && hasYOneOf) {
+			assert(x.oneOf)
+			assert(y.oneOf)
+			return {
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, y.oneOf)
+			}
+		} else if (hasXOneOf) {
+			assert(x.oneOf)
+			return {
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, [y])
+			}
+		} else if (hasYOneOf) {
+			assert(y.oneOf)
+			return {
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				oneOf: Arr.getUnionSemigroup(schemaEq).concat([x], y.oneOf)
+			}
+		}
+		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+			oneOf: Arr.getUnionSemigroup(schemaEq).concat([x], [y])
+		}
+	},
+}
 
 export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 	concat(x, y) {
