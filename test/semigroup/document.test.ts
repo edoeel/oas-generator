@@ -17,7 +17,8 @@ describe('OAS semigroup', () => {
 									'Content-type': {
 										required: true,
 										schema: {
-											type: 'string'
+											type: 'string',
+											enum: ["application/json"]
 										}
 									}
 								}
@@ -64,8 +65,8 @@ describe('OAS semigroup', () => {
 										required: false,
 										schema: {
 											oneOf: [
-												{type: 'string'},
-												{type: 'boolean'}
+												{ type: 'string', enum: ["application/json"] },
+												{ type: 'boolean' }
 											]
 										}
 									}

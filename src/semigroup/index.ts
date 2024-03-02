@@ -13,6 +13,7 @@ import { infoSg } from '@app/semigroup/info';
 import assert from 'assert';
 
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
+
 const schemaEq: Eq.Eq<OAS.Schema> = {
 	equals(x, y) {
 		return x.type === y.type
@@ -72,7 +73,6 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
 			oneOf: [x, y]
 		}
 	},
@@ -117,6 +117,7 @@ export const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	concat(x, y) {
 		return {
 			description: longerString.concat(x.description, y.description),
+			// content
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("headers")(headersSg)
 		};
 	},
@@ -147,6 +148,9 @@ export const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 export const operationSg: Sg.Semigroup<OAS.OperationObject> = {
 	concat(x, y) {
 		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+			// requestBody
+			// parameters
 			responses: responsesSg.concat(x.responses, y.responses),
 		};
 	},
