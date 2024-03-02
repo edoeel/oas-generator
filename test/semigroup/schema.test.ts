@@ -87,4 +87,52 @@ describe('Schema semigroup', () => {
 		const expected: OAS.Schema = { oneOf: [{ type: 'string' }, { type: 'boolean' }] }
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
+	it('should concat 2 different schema, each one with oneOf, into 1 unique schema with oneOf containing only unique schemas and concated properties', () => {
+		const x: OAS.Schema = { description: 'Some stuff', oneOf: [{ type: 'string', description: "A description" }, { type: 'boolean', description: "Another description" }] }
+		const y: OAS.Schema = { description: 'Some other stuff', oneOf: [{ type: 'string' }, { type: 'boolean' }] }
+		const expected: OAS.Schema = { description: 'Some other stuff', oneOf: [{ type: 'string', description: "A description" }, { type: 'boolean', description: "Another description" }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 same schemas into 1 schema merging enum property', () => {
+		const x: OAS.Schema = { type: "string", enum: ["a", "b"] }
+		const y: OAS.Schema = { type: "string", enum: ["c", "d"] }
+		const expected: OAS.Schema = { type: "string", enum: ["a", "b", "c", "d"] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, each one with oneOf, into 1 unique schema with oneOf containing only unique schemas and merging properties (such as enum)', () => {
+		const x: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const y: OAS.Schema = { oneOf: [{ type: 'string', enum: ["c", "d"] }, { type: 'boolean' }] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b", "c", "d"] }, { type: 'boolean' }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, each one with oneOf, into 1 unique schema with oneOf containing only unique schemas and merging properties (such as enum)', () => {
+		const x: OAS.Schema = { oneOf: [{ type: 'string', enum: ["c", "d"] }, { type: 'boolean' }] }
+		const y: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'string', enum: ["c", "d", "a", "b"] }, { type: 'boolean' }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, one oneOf schema and one standard schema, into 1 unique schema with oneOf containing only unique schemas', () => {
+		const x: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const y: OAS.Schema = { type: 'string', enum: ["c", "d"] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b", "c", "d"] }, { type: 'boolean' }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, one oneOf schema and one standard schema, into 1 unique schema with oneOf containing only unique schemas', () => {
+		const x: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const y: OAS.Schema = { type: 'number', enum: [1, 2] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }, { type: 'number', enum: [1, 2] }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, one oneOf schema and one standard schema, into 1 unique schema with oneOf containing only unique schemas', () => {
+		const x: OAS.Schema = { type: 'string', enum: ["c", "d"] }
+		const y: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'string', enum: ["c", "d", "a", "b"] }, { type: 'boolean' }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 different schema, one oneOf schema and one standard schema, into 1 unique schema with oneOf containing only unique schemas', () => {
+		const x: OAS.Schema = { type: 'number', enum: [1, 2] }
+		const y: OAS.Schema = { oneOf: [{ type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		const expected: OAS.Schema = { oneOf: [{ type: 'number', enum: [1, 2] }, { type: 'string', enum: ["a", "b"] }, { type: 'boolean' }] }
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
 });

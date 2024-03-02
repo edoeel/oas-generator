@@ -1,4 +1,4 @@
-import { concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
+import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
 import * as OAS from '@app/oas';
 import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
@@ -15,7 +15,7 @@ import assert from 'assert';
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 const schemaEq: Eq.Eq<OAS.Schema> = {
 	equals(x, y) {
-		return x.type === y.type;
+		return x.type === y.type
 	},
 }
 
@@ -43,7 +43,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
-				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, y.oneOf)
+				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, y.oneOf)
 			}
 		} else if (hasXOneOf) {
 			assert(x.oneOf)
@@ -52,8 +52,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
-				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, [y])
+				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, [y])
 			}
 		} else if (hasYOneOf) {
 			assert(y.oneOf)
@@ -62,8 +61,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
-				oneOf: Arr.getUnionSemigroup(schemaEq).concat([x], y.oneOf)
+				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat([x], y.oneOf)
 			}
 		} else if (x.type === undefined && y.type === undefined) {
 			return {};
