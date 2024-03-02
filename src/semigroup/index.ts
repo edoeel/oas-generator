@@ -1,4 +1,4 @@
-import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
+import { concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
 import * as OAS from '@app/oas';
 import * as B from 'fp-ts/boolean';
 import * as Sg from 'fp-ts/Semigroup';
@@ -12,26 +12,18 @@ import * as Eq from 'fp-ts/Eq';
 import { infoSg } from '@app/semigroup/info';
 import assert from 'assert';
 
-const isReferenceObject = (maybeReferenceObj: unknown): maybeReferenceObj is OAS.ReferenceObject => maybeReferenceObj !== null && typeof maybeReferenceObj === 'object' && '$ref' in maybeReferenceObj;
-
-type ExcludeReferenceObject<T> = T extends { $ref: any } ? never : T;
-
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 const schemaEq: Eq.Eq<OAS.Schema> = {
 	equals(x, y) {
-		return true;
+		return x.type === y.type;
 	},
 }
 
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
-		if (x.type === undefined && y.type === undefined) {
-			return {};
-		}
-
-		if (x.type === y.type) {
+		if (x.type !== undefined && x.type === y.type) {
 			return {
-				type: x.type,
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("type")(Sg.first()),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
@@ -50,6 +42,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
 				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, y.oneOf)
 			}
 		} else if (hasXOneOf) {
@@ -59,6 +52,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
 				oneOf: Arr.getUnionSemigroup(schemaEq).concat(x.oneOf, [y])
 			}
 		} else if (hasYOneOf) {
@@ -68,49 +62,44 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
 				oneOf: Arr.getUnionSemigroup(schemaEq).concat([x], y.oneOf)
 			}
+		} else if (x.type === undefined && y.type === undefined) {
+			return {};
 		}
+
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
-			oneOf: Arr.getUnionSemigroup(schemaEq).concat([x], [y])
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("enum")(Arr.getUnionSemigroup(S.Eq)),
+			oneOf: [x, y]
 		}
 	},
 }
 
 export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 	concat(x, y) {
-		// Workaround: Typescript isn't smart enough to remove ReferenceObject from the union type in .schema
-		const xx = x as Omit<typeof x, "schema"> & { schema: ExcludeReferenceObject<(typeof x)["schema"]> };
-		const yy = y as Omit<typeof y, "schema"> & { schema: ExcludeReferenceObject<(typeof y)["schema"]> };
-		assert(!isReferenceObject(x.schema), 'ReferenceObjects are not created during oas generation');
-		assert(!isReferenceObject(y.schema), 'ReferenceObjects are not created during oas generation');
-
 		return {
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("description")(longerString),
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("required")(B.SemigroupAll),
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("deprecated")(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("allowEmptyValue")(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("example")(Sg.first()),
-			...concatRecordOptionalFieldsWithSemigroup(xx, yy)("schema")(schemaSg),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(B.SemigroupAll),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("deprecated")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("allowEmptyValue")(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)("schema")(schemaSg),
 		}
 	},
 }
 
-export const headersSg: Sg.Semigroup<NonNullable<ExcludeReferenceObject<OAS.ResponsesObject[string]>["headers"]>> = {
+export const headersSg: Sg.Semigroup<NonNullable<OAS.ExcludeReferenceObject<OAS.ResponsesObject[string]>["headers"]>> = {
 	concat(x, y) {
 		return pipe(
 			getUniqKeysFromObjects([x, y]),
 			Arr.map(headerName => {
 				if (x[headerName] && y[headerName]) {
-					const xHeader = x[headerName];
-					const yHeader = y[headerName];
-					assert(!isReferenceObject(xHeader), 'ReferenceObjects are not created during oas generation');
-					assert(!isReferenceObject(yHeader), 'ReferenceObjects are not created during oas generation');
-					return { [headerName]: headerSg.concat(xHeader, yHeader) };
+					return { [headerName]: headerSg.concat(x[headerName], y[headerName]) };
 				}
 
 				if (x[headerName]) {
@@ -128,8 +117,6 @@ export const headersSg: Sg.Semigroup<NonNullable<ExcludeReferenceObject<OAS.Resp
 
 export const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	concat(x, y) {
-		assert(!isReferenceObject(x), 'ReferenceObjects are not created during oas generation');
-		assert(!isReferenceObject(y), 'ReferenceObjects are not created during oas generation');
 		return {
 			description: longerString.concat(x.description, y.description),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)("headers")(headersSg)
@@ -219,87 +206,14 @@ export const pathsSg: Sg.Semigroup<OAS.Oas['paths']> = {
 	},
 };
 
-const getUniqKeysFromObjects = (a: Array<Record<string, unknown>>): string[] => pipe(
-	a,
-	Arr.flatMap(obj => Object.keys(obj)),
-	Arr.uniq(S.Eq),
-);
-
 export const documentSg: Sg.Semigroup<OAS.Oas> = Sg.struct({
 	info: infoSg,
 	openapi: Sg.first<string>(),
 	paths: pathsSg,
 });
 
-// Import { arrayUniqMergingWithSemigroup, concatRecordOptionalFieldsWithSemigroup } from '@app/functions';
-// import type * as OAS from '@app/oas';
-// import * as B from "fp-ts/boolean";
-// import * as Sg from "fp-ts/Semigroup";
-// import * as S from "fp-ts/string";
-// import * as N from "fp-ts/number";
-// import * as Ord from "fp-ts/Ord";
-// import assert from "assert";
-
-// // const responsesSg: Sg.Semigroup<OAS.OperationObject["responses"]> = {
-// //   concat(x, y) {
-// //     Object.keys(x).map((code) => y[code] !== undefined ? responseSg.concat(x[code], y[code]))
-// //     return {}
-// //   },
-// // }
-
-// const schemaSg: Sg.Semigroup<OAS.Schema> = {
-//   concat(x, y) {
-//     assert(x)
-//     assert(y)
-//     assert(!isReferenceObject(x))
-//     assert(!isReferenceObject(y))
-//     assert(x.properties === undefined)
-//     assert(x.type !== "array")
-//     assert(y.properties === undefined)
-//     assert(y.type !== "array")
-//     return {
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("type")(Sg.first<OAS.NonArraySchemaObjectType>()),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first<string>()),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("nullable")(B.SemigroupAll),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(arrayUniqMergingWithSemigroup(S.Eq, S.Semigroup)),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(arrayUniqMergingWithSemigroup(S.Eq, S.Semigroup)),
-//     }
-//   },
-// }
-
-// const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
-//   concat(x, y) {
-//     assert(!isReferenceObject(x.schema))
-//     assert(!isReferenceObject(y.schema))
-//     return {
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("allowEmptyValue")(B.SemigroupAll),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("example")(Sg.first<string>()),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("required")(B.SemigroupAll),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("schema")(schemaSg.concat(x, y)),
-//     }
-//   },
-// }
-
-// const responseSg: Sg.Semigroup<OAS.OperationObject["responses"][string]> = {
-//   concat(x, y) {
-//     assert(!isReferenceObject(x))
-//     assert(!isReferenceObject(y))
-//     return {
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("headers")(headerSg.concat(x, y)),
-//     }
-//   },
-// }
-
-// const operationSg: Sg.Semigroup<OAS.OperationObject> = {
-//   concat(x, y) {
-//     return {
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("description")(longerString),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("summary")(longerString),
-//       ...concatRecordOptionalFieldsWithSemigroup(x, y)("tags")(arrayUniqMergingWithSemigroup(S.Eq, S.Semigroup)),
-//       responses: responsesSg.concat(x.responses, y.responses),
-//     }
-//   },
-// }
-
+const getUniqKeysFromObjects = (a: Array<Record<string, unknown>>): string[] => pipe(
+	a,
+	Arr.flatMap(obj => Object.keys(obj)),
+	Arr.uniq(S.Eq),
+);
