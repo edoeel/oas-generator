@@ -1,12 +1,13 @@
 import {type OpenAPIV3} from 'openapi-types';
 
 export type ExcludeReferenceObject<T> =
-	T extends { $ref: any }
-	? never
+	T extends {$ref: any}
+		? never
 		: T extends Array<infer U>
-		? Array<ExcludeReferenceObject<U>>
+			? Array<ExcludeReferenceObject<U>>
+			// eslint-disable-next-line @typescript-eslint/ban-types
 			: T extends object
-				? { [K in keyof T]: ExcludeReferenceObject<T[K]> }
+				? {[K in keyof T]: ExcludeReferenceObject<T[K]>}
 				: T;
 
 export type Method = OpenAPIV3.HttpMethods;
