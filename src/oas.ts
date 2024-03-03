@@ -30,6 +30,8 @@ export type ReferenceObject = OpenAPIV3.ReferenceObject;
 export type HeaderObject = ExcludeReferenceObject<OpenAPIV3.HeaderObject>;
 export type ArraySchemaObject = ExcludeReferenceObject<OpenAPIV3.ArraySchemaObject>;
 export type NonArraySchemaObject = ExcludeReferenceObject<OpenAPIV3.NonArraySchemaObject>;
+export type ParametersObject = ExcludeReferenceObject<OpenAPIV3.OperationObject['parameters']>;
+export type ParameterObject = ExcludeReferenceObject<OpenAPIV3.ParameterObject>;
 
 export type RequestIdentifierPath = Readonly<{readonly path: Path; readonly method: Method}>;
 export type ResponseIdentifierPath = Readonly<{readonly path: Path; readonly method: Method; readonly statusCode: StatusCode}>;

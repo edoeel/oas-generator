@@ -151,12 +151,39 @@ export const responsesSg: Sg.Semigroup<OAS.ResponsesObject> = {
 	},
 };
 
+export const parameterEq: Eq.Eq<OAS.ParameterObject> = {
+	equals(x, y) {
+		return x.in === y.in && x.name === y.name;
+	},
+};
+
+export const parameterSg: Sg.Semigroup<OAS.ParameterObject> = {
+	concat(x, y) {
+		return {
+			in: x.in,
+			name: x.name,
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(B.SemigroupAll),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('allowEmptyValue')(B.SemigroupAny),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('schema')(schemaSg),
+		};
+	},
+};
+
+export const parametersSg: Sg.Semigroup<NonNullable<OAS.ParametersObject>> = {
+	concat(x, y) {
+		return arrayUniqMergingWithSemigroup(parameterEq, parameterSg).concat(x, y);
+	},
+};
+
 export const operationSg: Sg.Semigroup<OAS.OperationObject> = {
 	concat(x, y) {
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 			// RequestBody
-			// parameters
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('parameters')(parametersSg),
 			responses: responsesSg.concat(x.responses, y.responses),
 		};
 	},
