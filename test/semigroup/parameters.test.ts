@@ -11,11 +11,11 @@ describe('Parameters semigroup', () => {
 		expect(parametersSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it.each([
-		[[{in: "header", name:"Content-type"}], [{in: "header", name:"Content-type"}], [{in: "header", name:"Content-type"}]],
-		[[{in: "header", name:"Content-type", description: "A description"}], [{in: "header", name:"Content-type"}], [{in: "header", name:"Content-type", description: "A description"}]],
-		[[{in: "header", name:"Content-type"}], [{in: "header", name:"Content-type", description: "A description"}], [{in: "header", name:"Content-type", description: "A description"}]],
-		[[{in: "header", name:"Content-type", description: "A longer description"}], [{in: "header", name:"Content-type", description: "A description"}], [{in: "header", name:"Content-type", description: "A longer description"}]],
-		[[{in: "header", name:"Accept", description: "A longer description"}], [{in: "header", name:"Content-type", description: "A description"}], [{in: "header", name:"Accept", description: "A longer description"}, {in: "header", name:"Content-type", description: "A description"}]],
+		[[{in: 'header', name: 'Content-type'}], [{in: 'header', name: 'Content-type'}], [{in: 'header', name: 'Content-type'}]],
+		[[{in: 'header', name: 'Content-type', description: 'A description'}], [{in: 'header', name: 'Content-type'}], [{in: 'header', name: 'Content-type', description: 'A description'}]],
+		[[{in: 'header', name: 'Content-type'}], [{in: 'header', name: 'Content-type', description: 'A description'}], [{in: 'header', name: 'Content-type', description: 'A description'}]],
+		[[{in: 'header', name: 'Content-type', description: 'A longer description'}], [{in: 'header', name: 'Content-type', description: 'A description'}], [{in: 'header', name: 'Content-type', description: 'A longer description'}]],
+		[[{in: 'header', name: 'Accept', description: 'A longer description'}], [{in: 'header', name: 'Content-type', description: 'A description'}], [{in: 'header', name: 'Accept', description: 'A longer description'}, {in: 'header', name: 'Content-type', description: 'A description'}]],
 	])('should concat parameters merging by in and name properties', (x, y, expected) => {
 		expect(parametersSg.concat(x, y)).toStrictEqual(expected);
 	});

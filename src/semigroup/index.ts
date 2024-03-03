@@ -20,6 +20,28 @@ const schemaEq: Eq.Eq<OAS.Schema> = {
 	},
 };
 
+export const propertiesSg: Sg.Semigroup<NonNullable<OAS.Schema['properties']>> = {
+	concat(x, y) {
+		return pipe(
+			getUniqKeysFromObjects([x, y]),
+			Arr.map(property => {
+				if (x[property] && y[property]) {
+					return {[property]: schemaSg.concat(x[property], y[property])};
+				}
+
+				if (x[property]) {
+					return {[property]: x[property]};
+				}
+
+				if (y[property]) {
+					return {[property]: y[property]};
+				}
+			}),
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+		);
+	},
+};
+
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
 		if (x.type !== undefined && x.type === y.type) {
@@ -29,6 +51,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)('properties')(propertiesSg),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('enum')(Arr.getUnionSemigroup(S.Eq)),
 			};
 		}
@@ -183,11 +206,11 @@ export const mediaTypeSg: Sg.Semigroup<OAS.MediaTypeObject> = {
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('schema')(schemaSg),
-		}
+		};
 	},
-}
+};
 
-export const contentSg: Sg.Semigroup<OAS.RequestBodyObject["content"]> = {
+export const contentSg: Sg.Semigroup<OAS.RequestBodyObject['content']> = {
 	concat(x, y) {
 		return pipe(
 			getUniqKeysFromObjects([x, y]),
@@ -214,8 +237,8 @@ export const requestBodySg: Sg.Semigroup<OAS.RequestBodyObject> = {
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(B.SemigroupAll),
-			content: contentSg.concat(x.content, y.content)
-		}
+			content: contentSg.concat(x.content, y.content),
+		};
 	},
 };
 
