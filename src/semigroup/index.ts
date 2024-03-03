@@ -178,11 +178,52 @@ export const parametersSg: Sg.Semigroup<NonNullable<OAS.ParametersObject>> = {
 	},
 };
 
+export const mediaTypeSg: Sg.Semigroup<OAS.MediaTypeObject> = {
+	concat(x, y) {
+		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('schema')(schemaSg),
+		}
+	},
+}
+
+export const contentSg: Sg.Semigroup<OAS.RequestBodyObject["content"]> = {
+	concat(x, y) {
+		return pipe(
+			getUniqKeysFromObjects([x, y]),
+			Arr.map(contentT => {
+				if (x[contentT] && y[contentT]) {
+					return {[contentT]: mediaTypeSg.concat(x[contentT], y[contentT])};
+				}
+
+				if (x[contentT]) {
+					return {[contentT]: x[contentT]};
+				}
+
+				if (y[contentT]) {
+					return {[contentT]: y[contentT]};
+				}
+			}),
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+		);
+	},
+};
+
+export const requestBodySg: Sg.Semigroup<OAS.RequestBodyObject> = {
+	concat(x, y) {
+		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(B.SemigroupAll),
+			content: contentSg.concat(x.content, y.content)
+		}
+	},
+};
+
 export const operationSg: Sg.Semigroup<OAS.OperationObject> = {
 	concat(x, y) {
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
-			// RequestBody
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('requestBody')(requestBodySg),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('parameters')(parametersSg),
 			responses: responsesSg.concat(x.responses, y.responses),
 		};
