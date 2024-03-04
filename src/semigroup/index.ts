@@ -42,9 +42,11 @@ export const propertiesSg: Sg.Semigroup<NonNullable<OAS.Schema['properties']>> =
 	},
 };
 
+const doXAndYHaveTheSameValidType = <T extends {type?: OAS.Schema["type"]}>(x: T, y: T) => ![x.type, y.type].includes(undefined) && x.type === y.type;
+
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
-		if (x.type !== undefined && x.type === y.type) {
+		if (doXAndYHaveTheSameValidType(x, y)) {
 			return {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('type')(Sg.first()),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
@@ -59,8 +61,9 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 		const hasXOneOf = x.oneOf !== undefined && x.oneOf.length > 0;
 		const hasYOneOf = y.oneOf !== undefined && y.oneOf.length > 0;
 		if (hasXOneOf && hasYOneOf) {
-			assert(x.oneOf);
-			assert(y.oneOf);
+			// Both has oneOf property, concat on that property
+			assert(x.oneOf); // Typescript isn't smart enough
+			assert(y.oneOf); // Typescript isn't smart enough
 			return {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
@@ -72,7 +75,8 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 		}
 
 		if (hasXOneOf) {
-			assert(x.oneOf);
+			// Only x has oneOf property, if y is already present in x.oneOf return x.oneOf, otherwise add y into x.oneOf array
+			assert(x.oneOf); // Typescript isn't smart enough
 			return {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
@@ -83,7 +87,8 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 		}
 
 		if (hasYOneOf) {
-			assert(y.oneOf);
+			// Only y has oneOf property, if x is already present in y.oneOf return y.oneOf, otherwise add x into y.oneOf array
+			assert(y.oneOf); // Typescript isn't smart enough
 			return {
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
@@ -94,9 +99,11 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 		}
 
 		if (x.type === undefined && y.type === undefined) {
+			// Probably an impossible state
 			return {};
 		}
 
+		// Create an object with oneOf property then add x and y
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
