@@ -43,12 +43,17 @@ export const propertiesSg: Sg.Semigroup<NonNullable<OAS.Schema['properties']>> =
 };
 
 const doXAndYHaveTheSameValidType = <T extends {type?: OAS.Schema["type"]}>(x: T, y: T) => ![x.type, y.type].includes(undefined) && x.type === y.type;
+const hasOneOfProperty = (maybeOneOf: {oneOf?: OAS.Schema["oneOf"]}): maybeOneOf is Omit<OAS.Schema, "oneOf"> & {oneOf: Array<OAS.Schema>} => maybeOneOf.oneOf !== undefined && maybeOneOf.oneOf.length > 0
+const isArraySchema = (maybeArraySchema: OAS.Schema): maybeArraySchema is OAS.ArraySchemaObject => maybeArraySchema.type === "array" && maybeArraySchema.items !== undefined;
 
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
 		if (doXAndYHaveTheSameValidType(x, y)) {
 			return {
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('type')(Sg.first()),
+				...(isArraySchema(x) && isArraySchema(y)
+							? {type: "array", items: schemaSg.concat(x.items, y.items)}
+							: concatRecordOptionalFieldsWithSemigroup(x, y)('type')(Sg.first())
+				),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
@@ -58,59 +63,26 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 			};
 		}
 
-		const hasXOneOf = x.oneOf !== undefined && x.oneOf.length > 0;
-		const hasYOneOf = y.oneOf !== undefined && y.oneOf.length > 0;
-		if (hasXOneOf && hasYOneOf) {
-			// Both has oneOf property, concat on that property
-			assert(x.oneOf); // Typescript isn't smart enough
-			assert(y.oneOf); // Typescript isn't smart enough
-			return {
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('enum')(Arr.getUnionSemigroup(S.Eq)),
-				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, y.oneOf),
-			};
-		}
-
-		if (hasXOneOf) {
-			// Only x has oneOf property, if y is already present in x.oneOf return x.oneOf, otherwise add y into x.oneOf array
-			assert(x.oneOf); // Typescript isn't smart enough
-			return {
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
-				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, [y]),
-			};
-		}
-
-		if (hasYOneOf) {
-			// Only y has oneOf property, if x is already present in y.oneOf return y.oneOf, otherwise add x into y.oneOf array
-			assert(y.oneOf); // Typescript isn't smart enough
-			return {
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
-				oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat([x], y.oneOf),
-			};
-		}
-
-		if (x.type === undefined && y.type === undefined) {
-			// Probably an impossible state
+		const hasXOneOf = hasOneOfProperty(x)
+		const hasYOneOf = hasOneOfProperty(y)
+		if (hasXOneOf === false && hasYOneOf === false && x.type === undefined && y.type === undefined) {
 			return {};
 		}
 
-		// Create an object with oneOf property then add x and y
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
-			oneOf: [x, y],
-		};
+			...(hasXOneOf && hasYOneOf // Both x and y have oneOf property: concat that property
+						? {oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, y.oneOf)}
+						: hasXOneOf // Only x has oneOf property, if y is already present in x.oneOf return x.oneOf, otherwise add y into x.oneOf array
+							? { oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, [y]) }
+							: hasYOneOf // Only y has oneOf property, if x is already present in y.oneOf return y.oneOf, otherwise add x into y.oneOf array
+								? { oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat([x], y.oneOf) }
+								: { oneOf: [x, y] } // Create an object with oneOf property then add x and y
+					)
+		}
 	},
 };
 
