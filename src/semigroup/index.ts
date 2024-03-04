@@ -10,7 +10,10 @@ import {pipe} from 'fp-ts/function';
 import * as Ord from 'fp-ts/Ord';
 import type * as Eq from 'fp-ts/Eq';
 import {infoSg} from '@app/semigroup/info';
-import assert from 'assert';
+
+const doXAndYHaveTheSameValidType = <T extends {type?: OAS.Schema["type"]}>(x: T, y: T) => ![x.type, y.type].includes(undefined) && x.type === y.type;
+const hasOneOfProperty = (maybeOneOf: {oneOf?: OAS.Schema["oneOf"]}): maybeOneOf is Omit<OAS.Schema, "oneOf"> & {oneOf: Array<OAS.Schema>} => maybeOneOf.oneOf !== undefined && maybeOneOf.oneOf.length > 0
+const isArraySchema = (maybeArraySchema: OAS.Schema): maybeArraySchema is OAS.ArraySchemaObject => maybeArraySchema.type === "array" && maybeArraySchema.items !== undefined;
 
 const longerString = Sg.max(Ord.contramap<number, string>(s => s.length)(N.Ord));
 
@@ -41,10 +44,6 @@ export const propertiesSg: Sg.Semigroup<NonNullable<OAS.Schema['properties']>> =
 		);
 	},
 };
-
-const doXAndYHaveTheSameValidType = <T extends {type?: OAS.Schema["type"]}>(x: T, y: T) => ![x.type, y.type].includes(undefined) && x.type === y.type;
-const hasOneOfProperty = (maybeOneOf: {oneOf?: OAS.Schema["oneOf"]}): maybeOneOf is Omit<OAS.Schema, "oneOf"> & {oneOf: Array<OAS.Schema>} => maybeOneOf.oneOf !== undefined && maybeOneOf.oneOf.length > 0
-const isArraySchema = (maybeArraySchema: OAS.Schema): maybeArraySchema is OAS.ArraySchemaObject => maybeArraySchema.type === "array" && maybeArraySchema.items !== undefined;
 
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
