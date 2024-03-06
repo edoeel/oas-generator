@@ -53,6 +53,7 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 							? {type: "array", items: schemaSg.concat(x.items, y.items)}
 							: concatRecordOptionalFieldsWithSemigroup(x, y)('type')(Sg.first())
 				),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(Arr.getUnionSemigroup(S.Eq)),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
@@ -68,6 +69,10 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 			return {};
 		}
 
+		if (!hasXOneOf && !hasYOneOf) {
+			return { oneOf: [x, y] };
+		}
+
 		return {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
@@ -76,10 +81,10 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 			...(hasXOneOf && hasYOneOf // Both x and y have oneOf property: concat that property
 						? {oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, y.oneOf)}
 						: hasXOneOf // Only x has oneOf property, if y is already present in x.oneOf return x.oneOf, otherwise add y into x.oneOf array
-							? { oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, [y]) }
+							? {oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat(x.oneOf, [y])}
 							: hasYOneOf // Only y has oneOf property, if x is already present in y.oneOf return y.oneOf, otherwise add x into y.oneOf array
-								? { oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat([x], y.oneOf) }
-								: { oneOf: [x, y] } // Create an object with oneOf property then add x and y
+								? {oneOf: arrayUniqMergingWithSemigroup(schemaEq, schemaSg).concat([x], y.oneOf)}
+								: {} // Impossible state
 					)
 		}
 	},
@@ -124,8 +129,8 @@ export const responseSg: Sg.Semigroup<OAS.ResponsesObject[string]> = {
 	concat(x, y) {
 		return {
 			description: longerString.concat(x.description, y.description),
-			// Content
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('headers')(headersSg),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('content')(contentSg),
 		};
 	},
 };

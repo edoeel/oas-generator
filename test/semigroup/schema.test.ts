@@ -172,9 +172,9 @@ describe('Schema semigroup', () => {
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it('should concat 2 different schema into 1 schema with oneOf containing each one schema', () => {
-		const x: OAS.Schema = {type: 'boolean'};
+		const x: OAS.Schema = {type: 'boolean', description: 'A description'};
 		const y: OAS.Schema = {type: 'object', properties: {foo: {type: 'string'}}};
-		const expected: OAS.Schema = {oneOf: [{type: 'boolean'}, {type: 'object', properties: {foo: {type: 'string'}}}]};
+		const expected: OAS.Schema = {oneOf: [{type: 'boolean', description: 'A description'}, {type: 'object', properties: {foo: {type: 'string'}}}]};
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it('should concat 2 different object schema into 1 schemaobject ', () => {
@@ -229,6 +229,30 @@ describe('Schema semigroup', () => {
 		const x: OAS.Schema = {type: "array", items: { type: "boolean" }};
 		const y: OAS.Schema = {type: "array", items: { type: "string" }};
 		const expected: OAS.Schema = {type: "array", items: {oneOf: [{ type: "boolean" },{ type: "string" }]}};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat required property', () => {
+		const x: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		const y: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		const expected: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat required property', () => {
+		const x: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		const y: OAS.Schema = {type: "object", properties: {foo: {type: "string"}}};
+		const expected: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat required property', () => {
+		const x: OAS.Schema = {type: "object", properties: {foo: {type: "string"}}};
+		const y: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		const expected: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat required property', () => {
+		const x: OAS.Schema = {type: "string", description: "A description"};
+		const y: OAS.Schema = {type: "object", required: ["foo"], properties: {foo: {type: "string"}}};
+		const expected: OAS.Schema = {oneOf: [{type: "string", description: "A description"}, {type: "object", required: ["foo"], properties: {foo: {type: "string"}}}]};
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
 });
