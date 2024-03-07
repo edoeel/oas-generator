@@ -267,4 +267,22 @@ describe('Schema semigroup', () => {
 		const expected: OAS.Schema = {type: "object", required: ["b"]};
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
+	it('should concat 2 same schemas into 1 schema nullable', () => {
+		const x: OAS.Schema = {type: "string", nullable: true};
+		const y: OAS.Schema = {type: "string"};
+		const expected: OAS.Schema = {type: "string", nullable: true}
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 same schemas into 1 schema nullable', () => {
+		const x: OAS.Schema = {type: "string"};
+		const y: OAS.Schema = {type: "string", nullable: true};
+		const expected: OAS.Schema = {type: "string", nullable: true}
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 same schemas into 1 schema nullable', () => {
+		const x: OAS.Schema = {type: "string", nullable: false};
+		const y: OAS.Schema = {type: "string", nullable: true};
+		const expected: OAS.Schema = {type: "string", nullable: true}
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
 });
