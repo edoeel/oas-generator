@@ -48,18 +48,19 @@ export const propertiesSg: Sg.Semigroup<NonNullable<OAS.Schema['properties']>> =
 export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	concat(x, y) {
 		if (doXAndYHaveTheSameValidType(x, y)) {
+			const enumP = Arr.getUnionSemigroup(S.Eq).concat(x.enum || [], y.enum || []); 
 			return {
 				...(isArraySchema(x) && isArraySchema(y)
 							? {type: "array", items: schemaSg.concat(x.items, y.items)}
 							: concatRecordOptionalFieldsWithSemigroup(x, y)('type')(Sg.first())
 				),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(Arr.getUnionSemigroup(S.Eq)),
+				...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(Arr.getIntersectionSemigroup(S.Eq)),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('nullable')(B.SemigroupAny),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
 				...concatRecordOptionalFieldsWithSemigroup(x, y)('properties')(propertiesSg),
-				...concatRecordOptionalFieldsWithSemigroup(x, y)('enum')(Arr.getUnionSemigroup(S.Eq)),
+				...(enumP.length > 0 && enumP.length <= 10 ? {enum: enumP} : {})
 			};
 		}
 

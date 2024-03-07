@@ -255,4 +255,16 @@ describe('Schema semigroup', () => {
 		const expected: OAS.Schema = {oneOf: [{type: "string", description: "A description"}, {type: "object", required: ["foo"], properties: {foo: {type: "string"}}}]};
 		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
 	});
+	it('should concat 2 same schemas into 1 schema making enum property more generic', () => {
+		const x: OAS.Schema = {type: "string", enum: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]};
+		const y: OAS.Schema = {type: "string", enum: ["k", "l", "m", "n", "o", "p", "q", "r", "s", "t"]};
+		const expected: OAS.Schema = {type: "string"};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
+	it('should concat 2 same schemas into 1 schema making enum property more generic', () => {
+		const x: OAS.Schema = {type: "object", required: ["a", "b"]};
+		const y: OAS.Schema = {type: "object", required: ["b", "c"]};
+		const expected: OAS.Schema = {type: "object", required: ["b"]};
+		expect(schemaSg.concat(x, y)).toStrictEqual(expected);
+	});
 });
