@@ -30,20 +30,17 @@ describe('Map RoundTrip to OAS', () => {
 			paths: {
 				'/quote': {
 					post: {
-						description: '**description**',
 						summary: '**summary**',
 						parameters: [
 							{
 								in: 'header',
 								name: 'Content-type',
 								required: true,
-								description: '**header description**',
 								allowEmptyValue: false,
 								example: 'application/json',
 								schema: {
 									type: 'string',
 									enum: ['application/json'],
-									description: '**schema description**',
 									example: 'application/json',
 									nullable: false,
 								},
@@ -51,32 +48,27 @@ describe('Map RoundTrip to OAS', () => {
 								in: 'header',
 								name: 'Accept',
 								required: true,
-								description: '**header description**',
 								allowEmptyValue: false,
 								example: 'application/json',
 								schema: {
 									type: 'string',
 									enum: ['application/json'],
-									description: '**schema description**',
 									example: 'application/json',
 									nullable: false,
 								},
 							},
 						],
 						requestBody: {
-							description: '**description**',
 							required: true,
 							content: {
 								'application/json': {
 									schema: {
 										type: 'object',
 										nullable: false,
-										description: '**description**',
 										required: ['foo'],
 										properties: {
 											foo: {
 												type: 'string',
-												description: '**description**',
 												nullable: false,
 												enum: ['bar'],
 											},
@@ -87,30 +79,26 @@ describe('Map RoundTrip to OAS', () => {
 						},
 						responses: {
 							200: {
-								description: '**description**',
+								description: '',
 								headers: {
 									'Content-type': {
 										required: true,
-										description: '**header description**',
 										allowEmptyValue: false,
 										example: 'application/json',
 										schema: {
 											type: 'string',
 											enum: ['application/json'],
-											description: '**schema description**',
 											example: 'application/json',
 											nullable: false,
 										},
 									},
 									Accept: {
 										required: true,
-										description: '**header description**',
 										allowEmptyValue: false,
 										example: 'application/json',
 										schema: {
 											type: 'string',
 											enum: ['application/json'],
-											description: '**schema description**',
 											example: 'application/json',
 											nullable: false,
 										},
@@ -121,12 +109,10 @@ describe('Map RoundTrip to OAS', () => {
 										schema: {
 											type: 'object',
 											nullable: false,
-											description: '**description**',
 											required: ['bar'],
 											properties: {
 												bar: {
 													type: 'string',
-													description: '**description**',
 													nullable: false,
 													enum: ['baz'],
 												},

@@ -37,7 +37,6 @@ export const mapRoundTripToOas = (rt: RT.RoundTrip): OAS.Oas => {
 		paths: {
 			[rt[0].path]: {
 				[rt[0].method.toLowerCase()]: {
-					description: '**description**',
 					summary: '**summary**',
 					...(
 						hasBody(rt[0].body)
@@ -51,7 +50,7 @@ export const mapRoundTripToOas = (rt: RT.RoundTrip): OAS.Oas => {
 					),
 					responses: {
 						[rt[1].statusCode]: {
-							description: '**description**',
+							description: '',
 							...(
 								hasHeaders(rt[0].headers)
 									? {headers: resheadersE.right}

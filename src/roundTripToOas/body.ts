@@ -9,7 +9,6 @@ import {isString} from 'effect/String';
 export const mapRequestBody = (contentTypeH: RT.Header['value'], body: RT.Request['body']): OAS.RequestBody => {
 	if (body === undefined) {
 		return {
-			description: '**description**',
 			required: false,
 			content: {
 			},
@@ -45,7 +44,6 @@ export const mapResponseContent = (contentTypeH: RT.Header['value'], body: RT.Re
 };
 
 const unserializeApplicationJson = (body: Omit<RT.Request['body'], 'undefined'>): OAS.RequestBody => ({
-	description: '**description**',
 	required: true,
 	content: {
 		'application/json': {
@@ -58,7 +56,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 	if (Array.isArray(value)) {
 		return {
 			type: 'array',
-			description: '**description**',
 			nullable: false,
 			items: value.length === 0 ? {} : toOasSchema(value[0]), // TODO map toOASSchema for each items of array, reduce results into one schema
 		};
@@ -73,7 +70,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 		return {
 			type: 'object',
 			nullable: false,
-			description: '**description**',
 			...(propKeys.length > 0 ? {
 				required: propKeys,
 				properties: prop,
@@ -84,7 +80,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 	if (isBoolean(value)) {
 		return {
 			type: 'boolean',
-			description: '**description**',
 			nullable: false,
 			enum: [value],
 		};
@@ -93,7 +88,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 	if (isString(value)) {
 		return {
 			type: 'string',
-			description: '**description**',
 			nullable: false,
 			enum: [value],
 		};
@@ -110,7 +104,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 
 		return {
 			type: nType,
-			description: '**description**',
 			nullable: false,
 			format: nFormat,
 			enum: [value],
@@ -118,7 +111,6 @@ const toOasSchema = (value: unknown): OAS.Schema => {
 	}
 
 	return {
-		description: '**description**',
 		nullable: true,
 	};
 };

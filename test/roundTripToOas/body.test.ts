@@ -18,14 +18,12 @@ describe('Map RoundTrip request body to OAS request body', () => {
 			nineth: 42.2,
 		});
 		const oasBody: OAS.RequestBody = {
-			description: '**description**',
 			required: true,
 			content: {
 				'application/json': {
 					schema: {
 						type: 'object',
 						nullable: false,
-						description: '**description**',
 						required: [
 							'first',
 							'second',
@@ -39,36 +37,30 @@ describe('Map RoundTrip request body to OAS request body', () => {
 						properties: {
 							first: {
 								type: 'integer',
-								description: '**description**',
 								nullable: false,
 								format: 'int32',
 								enum: [42],
 							},
 							second: {
 								type: 'string',
-								description: '**description**',
 								nullable: false,
 								enum: ['A valid string'],
 							},
 							third: {
 								type: 'boolean',
-								description: '**description**',
 								nullable: false,
 								enum: [true],
 							},
 							fourth: {
 								type: 'array',
-								description: '**description**',
 								nullable: false,
 								items: {},
 							},
 							fifth: {
 								type: 'array',
-								description: '**description**',
 								nullable: false,
 								items: {
 									type: 'boolean',
-									description: '**description**',
 									nullable: false,
 									enum: [true],
 								},
@@ -76,23 +68,19 @@ describe('Map RoundTrip request body to OAS request body', () => {
 							sixth: {
 								type: 'object',
 								nullable: false,
-								description: '**description**',
 							},
 							seventh: {
 								type: 'object',
 								nullable: false,
-								description: '**description**',
 								required: ['eighth'],
 								properties: {
 									eighth: {
-										description: '**description**',
 										nullable: true,
 									},
 								},
 							},
 							nineth: {
 								type: 'number',
-								description: '**description**',
 								nullable: false,
 								format: 'float',
 								enum: [42.2],

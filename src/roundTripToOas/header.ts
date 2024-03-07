@@ -11,13 +11,11 @@ export const mapRequestHeader = (header: RT.Header): E.Either<Error, OAS.Request
 		in: 'header',
 		name: header.name,
 		required: true,
-		description: '**header description**',
 		allowEmptyValue: header.value === '',
 		example: header.value,
 		schema: {
 			type: 'string',
 			enum: [header.value],
-			description: '**schema description**',
 			example: header.value,
 			nullable: false,
 		},
@@ -32,13 +30,11 @@ export const mapResponseHeader = (header: RT.Header): E.Either<Error, NonNullabl
 	return E.of({
 		[header.name]: {
 			required: true,
-			description: '**header description**',
 			allowEmptyValue: header.value === '',
 			example: header.value,
 			schema: {
 				type: 'string',
 				enum: [header.value],
-				description: '**schema description**',
 				example: header.value,
 				nullable: false,
 			},
