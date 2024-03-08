@@ -12,7 +12,7 @@ export const mapRequestHeader = (header: RT.Header): E.Either<Error, OAS.Request
 		name: header.name,
 		required: true,
 		allowEmptyValue: header.value === '',
-		example: header.value,
+		examples: header.value === '' ? {} : {[header.value]: {value: header.value}},
 		schema: {
 			type: 'string',
 			enum: [header.value],
@@ -31,7 +31,7 @@ export const mapResponseHeader = (header: RT.Header): E.Either<Error, NonNullabl
 		[header.name]: {
 			required: true,
 			allowEmptyValue: header.value === '',
-			example: header.value,
+			examples: header.value === '' ? {} : {[header.value]: {value: header.value}},
 			schema: {
 				type: 'string',
 				enum: [header.value],

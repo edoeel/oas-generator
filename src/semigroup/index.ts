@@ -91,6 +91,38 @@ export const schemaSg: Sg.Semigroup<OAS.Schema> = {
 	},
 };
 
+export const exampleSg: Sg.Semigroup<NonNullable<OAS.HeaderObject["examples"]>[string]> = {
+	concat(x, y) {
+		return {
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('summary')(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('description')(longerString),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('value')(longerString),
+		}
+	},
+}
+
+export const examplesSg: Sg.Semigroup<NonNullable<OAS.HeaderObject["examples"]>> = {
+	concat(x, y) {
+		return pipe(
+			getUniqKeysFromObjects([x, y]),
+			Arr.map(headerName => {
+				if (x[headerName] && y[headerName]) {
+					return {[headerName]: exampleSg.concat(x[headerName], y[headerName])};
+				}
+
+				if (x[headerName]) {
+					return {[headerName]: x[headerName]};
+				}
+
+				if (y[headerName]) {
+					return {[headerName]: y[headerName]};
+				}
+			}),
+			Arr.reduceRight({}, (pv, cv) => ({...pv, ...cv})),
+		);
+	},
+};
+
 export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 	concat(x, y) {
 		return {
@@ -98,7 +130,7 @@ export const headerSg: Sg.Semigroup<OAS.HeaderObject> = {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(B.SemigroupAll),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('allowEmptyValue')(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('examples')(examplesSg),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('schema')(schemaSg),
 		};
 	},
@@ -173,7 +205,7 @@ export const parameterSg: Sg.Semigroup<OAS.ParameterObject> = {
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('required')(B.SemigroupAll),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('deprecated')(B.SemigroupAny),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('allowEmptyValue')(B.SemigroupAny),
-			...concatRecordOptionalFieldsWithSemigroup(x, y)('example')(Sg.first()),
+			...concatRecordOptionalFieldsWithSemigroup(x, y)('examples')(examplesSg),
 			...concatRecordOptionalFieldsWithSemigroup(x, y)('schema')(schemaSg),
 		};
 	},

@@ -12,7 +12,7 @@ describe('Map RoundTrip request header to OAS request header', () => {
 			name: 'Content-type',
 			required: true,
 			allowEmptyValue: false,
-			example: 'application/json',
+			examples: {'application/json': {value: 'application/json'}},
 			schema: {
 				type: 'string',
 				example: 'application/json',
@@ -30,7 +30,7 @@ describe('Map RoundTrip request header to OAS request header', () => {
 			name: 'Content-type',
 			required: true,
 			allowEmptyValue: true,
-			example: '',
+			examples: {},
 			schema: {
 				type: 'string',
 				nullable: false,
@@ -57,7 +57,7 @@ describe('Map RoundTrip response header to OAS response header', () => {
 			'Content-type': {
 				required: true,
 				allowEmptyValue: false,
-				example: 'application/json',
+				examples: {'application/json': {value: 'application/json'}},
 				schema: {
 					type: 'string',
 					nullable: false,
@@ -75,7 +75,7 @@ describe('Map RoundTrip response header to OAS response header', () => {
 			'Content-type': {
 				required: true,
 				allowEmptyValue: true,
-				example: '',
+				examples: {},
 				schema: {
 					type: 'string',
 					nullable: false,

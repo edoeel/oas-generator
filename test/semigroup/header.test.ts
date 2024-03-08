@@ -55,15 +55,12 @@ describe('Header semigroup', () => {
 		expect(headerSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it.each([
-		[{example: 1}, {example: 2}, {example: 1}],
-		[{example: 2}, {example: 1}, {example: 2}],
-		[{example: true}, {example: false}, {example: true}],
-		[{example: false}, {example: true}, {example: false}],
-		[{example: 'a'}, {example: 'A longer example'}, {example: 'a'}],
-		[{example: false}, {example: 'a'}, {example: false}],
-		[{}, {example: 1}, {example: 1}],
-		[{example: 1}, {}, {example: 1}],
-	])('should concat example property', (x, y, expected) => {
+		[{examples: {}}, {examples: {}}, {examples: {}}],
+		[{examples: {"application/json": {value: "application/json"}}}, {examples: {}}, {examples: {"application/json": {value: "application/json"}}}],
+		[{examples: {}}, {examples: {"application/json": {value: "application/json"}}}, {examples: {"application/json": {value: "application/json"}}}],
+		[{examples: {"application/json": {value: "application/json"}}}, {examples: {"application/json": {value: "application/json"}}}, {examples: {"application/json": {value: "application/json"}}}],
+		[{examples: {"application/problem+json": {value: "application/problem+json"}}}, {examples: {"application/json": {value: "application/json"}}}, {examples: {"application/problem+json": {value: "application/problem+json"}, "application/json": {value: "application/json"}}}],
+	])('should concat examples property', (x, y, expected) => {
 		expect(headerSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it('should concat schema property', () => {

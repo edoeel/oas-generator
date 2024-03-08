@@ -53,15 +53,12 @@ describe('Parameter semigroup', () => {
 		expect(parameterSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it.each([
-		[{...baseParameter, example: 1}, {...baseParameter, example: 2}, {...baseParameter, example: 1}],
-		[{...baseParameter, example: 2}, {...baseParameter, example: 1}, {...baseParameter, example: 2}],
-		[{...baseParameter, example: true}, {...baseParameter, example: false}, {...baseParameter, example: true}],
-		[{...baseParameter, example: false}, {...baseParameter, example: true}, {...baseParameter, example: false}],
-		[{...baseParameter, example: 'a'}, {...baseParameter, example: 'A longer example'}, {...baseParameter, example: 'a'}],
-		[{...baseParameter, example: false}, {...baseParameter, example: 'a'}, {...baseParameter, example: false}],
-		[baseParameter, {...baseParameter, example: 1}, {...baseParameter, example: 1}],
-		[{...baseParameter, example: 1}, baseParameter, {...baseParameter, example: 1}],
-	])('should concat example property', (x, y, expected) => {
+		[{...baseParameter, examples: {}}, {...baseParameter, examples: {}}, {...baseParameter, examples: {}}],
+		[{...baseParameter, examples: {"application/json": {value: "application/json"}}}, {...baseParameter, examples: {}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}],
+		[{...baseParameter, examples: {}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}],
+		[{...baseParameter, examples: {"application/json": {value: "application/json"}}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}],
+		[{...baseParameter, examples: {"application/problem+json": {value: "application/problem+json"}}}, {...baseParameter, examples: {"application/json": {value: "application/json"}}}, {...baseParameter, examples: {"application/problem+json": {value: "application/problem+json"}, "application/json": {value: "application/json"}}}],
+	])('should concat examples property', (x, y, expected) => {
 		expect(parameterSg.concat(x, y)).toStrictEqual(expected);
 	});
 	it('should concat schema property', () => {

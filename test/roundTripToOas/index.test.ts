@@ -37,7 +37,7 @@ describe('Map RoundTrip to OAS', () => {
 								name: 'Content-type',
 								required: true,
 								allowEmptyValue: false,
-								example: 'application/json',
+								examples: {'application/json': {value: 'application/json'}},
 								schema: {
 									type: 'string',
 									enum: ['application/json'],
@@ -49,7 +49,7 @@ describe('Map RoundTrip to OAS', () => {
 								name: 'Accept',
 								required: true,
 								allowEmptyValue: false,
-								example: 'application/json',
+								examples: {'application/json': {value: 'application/json'}},
 								schema: {
 									type: 'string',
 									enum: ['application/json'],
@@ -84,7 +84,7 @@ describe('Map RoundTrip to OAS', () => {
 									'Content-type': {
 										required: true,
 										allowEmptyValue: false,
-										example: 'application/json',
+										examples: {'application/json': {value: 'application/json'}},
 										schema: {
 											type: 'string',
 											enum: ['application/json'],
@@ -95,7 +95,7 @@ describe('Map RoundTrip to OAS', () => {
 									Accept: {
 										required: true,
 										allowEmptyValue: false,
-										example: 'application/json',
+										examples: {'application/json': {value: 'application/json'}},
 										schema: {
 											type: 'string',
 											enum: ['application/json'],
